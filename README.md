@@ -1,5 +1,7 @@
 # Soundboard
 
+[![CI](https://github.com/Iota0zero2/soundboard/actions/workflows/ci.yml/badge.svg)](https://github.com/Iota0zero2/soundboard/actions/workflows/ci.yml)
+
 A simple, customizable software soundboard with live **mic passthrough**.
 
 Route your microphone *plus* sound effects into a single audio stream, so apps
