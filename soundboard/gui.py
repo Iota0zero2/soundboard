@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import partial
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication,
@@ -92,9 +92,14 @@ class SoundDialog(QDialog):
 
 
 class MainWindow(QMainWindow):
+    # Emitted from the global-hotkey thread; a queued connection marshals the
+    # actual playback (and any error dialog) back onto the GUI thread.
+    play_requested = Signal(object)
+
     def __init__(self, config: Config, config_path: str | Path):
         super().__init__()
         self.setWindowTitle("Soundboard")
+        self.play_requested.connect(self._play_entry)
         self.config = config
         self.config_path = config_path
         self.engine = AudioEngine(self._engine_config())
@@ -317,7 +322,9 @@ class MainWindow(QMainWindow):
         bindings: dict[str, object] = {}
         for entry in self.config.sounds:
             if entry.hotkey:
-                bindings[entry.hotkey] = partial(self._play_entry, entry)
+                # Emit the signal (thread-safe) rather than touching Qt widgets
+                # directly from the pynput listener thread.
+                bindings[entry.hotkey] = partial(self.play_requested.emit, entry)
         if self.config.stop_hotkey:
             bindings[self.config.stop_hotkey] = self.engine.stop_all
         self.hotkeys.set_bindings(bindings)

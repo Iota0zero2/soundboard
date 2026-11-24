@@ -103,15 +103,45 @@ class AudioEngine:
         if self.running:
             return
         cfg = self.config
+        in_ch, out_ch = self._resolve_channels()
+        # The callback mixes at the OUTPUT width; the mic (possibly mono) is
+        # up/down-mixed to match inside the callback.
+        cfg.channels = out_ch
         self._stream = sd.Stream(
             samplerate=cfg.samplerate,
             blocksize=cfg.blocksize,
-            channels=cfg.channels,
+            channels=(in_ch, out_ch),
             dtype="float32",
             device=(cfg.input_device, cfg.output_device),
             callback=self._callback,
         )
         self._stream.start()
+
+    def _resolve_channels(self) -> tuple[int, int]:
+        """Pick valid input/output channel counts for the chosen devices.
+
+        A duplex stream opened with a fixed channel count fails outright on a
+        mono microphone (common: laptop and headset mics report 1 input
+        channel). Clamp each side to what its device actually supports.
+        """
+        cfg = self.config
+        want = cfg.channels or 2
+
+        def info(dev, kind):
+            try:
+                if dev is not None:
+                    return sd.query_devices(dev, kind)
+                return sd.query_devices(kind=kind)
+            except Exception:
+                return None
+
+        in_info = info(cfg.input_device, "input")
+        out_info = info(cfg.output_device, "output")
+        in_max = int(in_info["max_input_channels"]) if in_info else want
+        out_max = int(out_info["max_output_channels"]) if out_info else want
+        in_ch = max(1, min(want, in_max)) if in_max > 0 else 1
+        out_ch = max(1, min(want, out_max)) if out_max > 0 else want
+        return in_ch, out_ch
 
     def stop(self) -> None:
         if self._stream is not None:
