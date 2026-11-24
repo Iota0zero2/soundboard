@@ -1,0 +1,30 @@
+{
+  "samplerate": 48000,
+  "blocksize": 512,
+  "channels": 2,
+  "input_device": null,
+  "output_device": null,
+  "mic_passthrough": true,
+  "mic_gain": 1.0,
+  "master_gain": 1.0,
+  "stop_hotkey": "<ctrl>+<alt>+0",
+  "columns": 4,
+  "sounds": [
+    {
+      "name": "Airhorn",
+      "path": "sounds/airhorn.wav",
+      "hotkey": "<ctrl>+<alt>+1",
+      "gain": 1.0,
+      "loop": false,
+      "color": "#ef4444"
+    },
+    {
+      "name": "Applause",
+      "path": "sounds/applause.wav",
+      "hotkey": "<ctrl>+<alt>+2",
+      "gain": 0.8,
+      "loop": false,
+      "color": "#3b82f6"
+    }
+  ]
+}
