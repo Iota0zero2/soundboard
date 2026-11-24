@@ -328,6 +328,10 @@ class MainWindow(QMainWindow):
         if self.config.stop_hotkey:
             bindings[self.config.stop_hotkey] = self.engine.stop_all
         self.hotkeys.set_bindings(bindings)
+        if self.hotkeys.last_error:
+            self.statusBar().showMessage(self.hotkeys.last_error)
+        elif self.hotkeys.active:
+            self.statusBar().showMessage("Global hotkeys active", 3000)
 
     # ---- shutdown ------------------------------------------------------
     def closeEvent(self, event):
